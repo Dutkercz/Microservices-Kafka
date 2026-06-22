@@ -3,13 +3,11 @@ package cristian.db.pedidos.controller;
 import cristian.db.pedidos.dto.NovoPagamentoRequestDto;
 import cristian.db.pedidos.dto.PedidoRequestDto;
 import cristian.db.pedidos.dto.PedidoResponseDto;
+import cristian.db.pedidos.publisher.representation.DetalhePedidoRepDto;
 import cristian.db.pedidos.service.PedidoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/pedidos")
@@ -27,5 +25,10 @@ public class PedidoController {
     public ResponseEntity<Void> atualizarPedido(@RequestBody NovoPagamentoRequestDto requestDto) {
         pedidoService.addNovoPagamento(requestDto);
         return  ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{codigo}")
+    public ResponseEntity<DetalhePedidoRepDto> detalhesPedido(@PathVariable Long codigo) {
+        return ResponseEntity.ok(pedidoService.carregarDadosCompletos(codigo));
     }
 }
