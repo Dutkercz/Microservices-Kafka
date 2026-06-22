@@ -1,5 +1,6 @@
 package cristian.db.pedidos.controller;
 
+import cristian.db.pedidos.dto.NovoPagamentoRequestDto;
 import cristian.db.pedidos.dto.PedidoRequestDto;
 import cristian.db.pedidos.dto.PedidoResponseDto;
 import cristian.db.pedidos.service.PedidoService;
@@ -20,5 +21,11 @@ public class PedidoController {
     @PostMapping
     public ResponseEntity<PedidoResponseDto> criarPedido(@RequestBody PedidoRequestDto requestDto) {
         return ResponseEntity.ok(pedidoService.criarPedido(requestDto));
+    }
+
+    @PostMapping("/pagamentos")
+    public ResponseEntity<Void> atualizarPedido(@RequestBody NovoPagamentoRequestDto requestDto) {
+        pedidoService.addNovoPagamento(requestDto);
+        return  ResponseEntity.noContent().build();
     }
 }

@@ -2,6 +2,7 @@ package cristian.db.pedidos.service;
 
 import cristian.db.pedidos.client.ServiceBancario;
 import cristian.db.pedidos.dto.CallbackPagamentoResponseDto;
+import cristian.db.pedidos.dto.NovoPagamentoRequestDto;
 import cristian.db.pedidos.dto.PedidoRequestDto;
 import cristian.db.pedidos.dto.PedidoResponseDto;
 import cristian.db.pedidos.exception.BusinessException;
@@ -11,6 +12,7 @@ import cristian.db.pedidos.model.enums.StatusPedido;
 import cristian.db.pedidos.repository.ItemPedidoRepository;
 import cristian.db.pedidos.repository.PedidoRepository;
 import cristian.db.pedidos.service.validador.Validator;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,11 +67,22 @@ public class PedidoService {
     private static void validarSucessoPagamentoESetNovoStatus(CallbackPagamentoResponseDto requestDto, Pedido pedido) {
         boolean sucesso = requestDto.status();
         if (sucesso) {
+            pedido.setObservacoes(requestDto.observacoes());
             pedido.setStatus(StatusPedido.PAGO);
         }
         else {
             pedido.setStatus(StatusPedido.ERRO_PAGAMENTO);
             pedido.setObservacoes(requestDto.observacoes());
         }
+    }
+
+    @Transactional
+    public void addNovoPagamento(NovoPagamentoRequestDto requestDto) {
+       Pedido pedido = pedidoRepository.findById(requestDto.codigoPedido())
+               .orElseThrow(() -> new EntityNotFoundException("Pedido não encontrado"));
+       pedido.setDadosPagamento(requestDto.dadosPagamento());
+       pedido.setStatus(StatusPedido.REALIZADO);
+       pedido.setObservacoes("Aguardando Processamento");
+       enviaSolicitacaoPagamento(pedido);
     }
 }
