@@ -4,9 +4,11 @@ import cristian.db.pedidos.client.ClientesClient;
 import cristian.db.pedidos.client.ProdutosClient;
 import cristian.db.pedidos.client.representation.ClienteRepresentantion;
 import cristian.db.pedidos.client.representation.ProdutoRepresentation;
+import cristian.db.pedidos.dto.CallbackPagamentoResponseDto;
 import cristian.db.pedidos.exception.ValidationException;
 import cristian.db.pedidos.model.ItemPedido;
 import cristian.db.pedidos.model.Pedido;
+import cristian.db.pedidos.model.enums.StatusPedido;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,18 @@ public class Validator {
             log.info("Item pedido do produto: {}", produto.codigo());
         } catch (FeignException.NotFound e) {
             throw new ValidationException("Item de codigo " + itemPedido.getCodigoProduto() + " não encontrado");
+        }
+    }
+
+    public void validarSucessoPagamentoESetNovoStatus(CallbackPagamentoResponseDto requestDto, Pedido pedido) {
+        boolean sucesso = requestDto.status();
+        if (sucesso) {
+            pedido.setObservacoes(requestDto.observacoes());
+            pedido.setStatus(StatusPedido.PAGO);
+        }
+        else {
+            pedido.setStatus(StatusPedido.ERRO_PAGAMENTO);
+            pedido.setObservacoes(requestDto.observacoes());
         }
     }
 }

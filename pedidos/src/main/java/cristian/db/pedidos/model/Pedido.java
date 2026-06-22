@@ -1,5 +1,6 @@
 package cristian.db.pedidos.model;
 
+import cristian.db.pedidos.client.representation.ClienteRepresentantion;
 import cristian.db.pedidos.model.enums.StatusPedido;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,9 +44,12 @@ public class Pedido {
 
     private String urlNf;
 
+    @OneToMany(mappedBy = "pedido")
+    private List<ItemPedido> itens;
+
     @Transient //não faz a persistência dos dados (indica ao JPA que não é uma coluna no banco)
     private DadosPagamento dadosPagamento;
 
-    @OneToMany(mappedBy = "pedido")
-    private List<ItemPedido> itens;
+    @Transient
+    private ClienteRepresentantion cliente;
 }

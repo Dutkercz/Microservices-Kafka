@@ -29,4 +29,7 @@ public class ItemPedido {
 
     @Column(nullable = false, precision = 16, scale = 2)
     private BigDecimal valorUnitario;
+
+    @Transient
+    private String nome;
 }

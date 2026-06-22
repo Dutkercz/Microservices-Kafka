@@ -34,26 +34,12 @@ public class PedidoService {
     public PedidoResponseDto criarPedido(PedidoRequestDto pedidoRequestDto) {
         Pedido pedido = pedidoMapper.toEntity(pedidoRequestDto);
         validator.validar(pedido);
-        realizaPersistencia(pedido);
-        enviaSolicitacaoPagamento(pedido);
-        return pedidoMapper.toResponseDto(pedido);
-    }
 
-    private void enviaSolicitacaoPagamento(Pedido pedido) {
-        // try/catch fictício
-        try {
-            String chavePagamento = serviceBancario.solicitarPagamento(pedido);
-            if(chavePagamento != null){
-                pedido.setChavePagamento(chavePagamento);
-            }
-        }catch (Exception e){
-            throw new RuntimeException("Erro ao efetuar pagamento ", e);
-        }
-    }
-
-    private void realizaPersistencia(Pedido pedido) {
         pedidoRepository.save(pedido);
         itemPedidoRepository.saveAll(pedido.getItens());
+
+        serviceBancario.enviaSolicitacaoPagamento(pedido);
+        return pedidoMapper.toResponseDto(pedido);
     }
 
     @Transactional
@@ -61,19 +47,7 @@ public class PedidoService {
         Pedido pedido = pedidoRepository.findByCodigoAndChavePagamento(requestDto.codigo(), requestDto.chavePagamento())
             .orElseThrow(() -> new BusinessException("Pedido não encontrado para o ID e chave de pagamento"));
 
-        validarSucessoPagamentoESetNovoStatus(requestDto, pedido);
-    }
-
-    private static void validarSucessoPagamentoESetNovoStatus(CallbackPagamentoResponseDto requestDto, Pedido pedido) {
-        boolean sucesso = requestDto.status();
-        if (sucesso) {
-            pedido.setObservacoes(requestDto.observacoes());
-            pedido.setStatus(StatusPedido.PAGO);
-        }
-        else {
-            pedido.setStatus(StatusPedido.ERRO_PAGAMENTO);
-            pedido.setObservacoes(requestDto.observacoes());
-        }
+        validator.validarSucessoPagamentoESetNovoStatus(requestDto, pedido);
     }
 
     @Transactional
@@ -83,6 +57,6 @@ public class PedidoService {
        pedido.setDadosPagamento(requestDto.dadosPagamento());
        pedido.setStatus(StatusPedido.REALIZADO);
        pedido.setObservacoes("Aguardando Processamento");
-       enviaSolicitacaoPagamento(pedido);
+       serviceBancario.enviaSolicitacaoPagamento(pedido);
     }
 }
