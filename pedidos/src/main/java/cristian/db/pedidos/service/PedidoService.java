@@ -15,6 +15,7 @@ import cristian.db.pedidos.model.ItemPedido;
 import cristian.db.pedidos.model.Pedido;
 import cristian.db.pedidos.model.enums.StatusPedido;
 import cristian.db.pedidos.publisher.DetalhePedidoMapper;
+import cristian.db.pedidos.publisher.PagamentoPublisher;
 import cristian.db.pedidos.publisher.representation.DetalhePedidoRepDto;
 import cristian.db.pedidos.repository.ItemPedidoRepository;
 import cristian.db.pedidos.repository.PedidoRepository;
@@ -41,6 +42,7 @@ public class PedidoService {
     private final ClientesClient apiClientes;
     private final ProdutosClient apiProdutos;
     private final DetalhePedidoMapper detalhePedidoMapper;
+    private final PagamentoPublisher pagamentoPublisher;
 
 
     @Transactional
@@ -52,6 +54,9 @@ public class PedidoService {
         itemPedidoRepository.saveAll(pedido.getItens());
 
         serviceBancario.enviaSolicitacaoPagamento(pedido);
+        carregarDadosCliente(pedido);
+        carregarItensPedido(pedido);
+        pagamentoPublisher.publicar(pedido);
         return pedidoMapper.toResponseDto(pedido);
     }
 
